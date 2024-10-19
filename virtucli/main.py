@@ -1,10 +1,11 @@
 from argparse import ArgumentParser
-from appdirs import user_config_dir
 from configparser import ConfigParser
-from tabulate import tabulate
-import json
+from appdirs import user_config_dir
 
 from virtualizorapi import Api
+
+from .utils import listVM
+from .utils import getVMInfo
 
 def default_config_path():
     appname = "virtucli"
@@ -24,9 +25,6 @@ def init_args():
     ## VM info
     VMInfo = subparsers.add_parser("vminfo", help="Get specific VM info")
     VMInfo.add_argument("-i", "--id", help="VM UID", required=True)
-
-    ## List VDF
-    listVDF = subparsers.add_parser("listvdf", help="List available VMs")
 
     # Parse arguments
     args = parser.parse_args()
@@ -48,54 +46,7 @@ def main():
     api = Api(serverURL, apiKey, apiPass)
 
     if args.command == "listvm":
-        vms = api.listVM()["vs"]
+        listVM(api)
 
-        tableHeaders = ["UID", "Hostname", "OS", "IP Addresses"]
-        vmTable= []
-        for vm in vms:
-            vmData = []
-            vmData.append(vm)
-            vmData.append(vms[vm]["hostname"])
-            vmData.append(vms[vm]["os_name"])
-            vmData.append(", ".join(ip for ip in vms[vm]["ips"].values()))
-
-            vmTable.append(vmData)
-
-        print(tabulate(vmTable, headers=tableHeaders, tablefmt="grid"))
     elif args.command == "vminfo":
-        info = api.VMInfo(args.id)["info"]
-
-        tableHeaders = ["Name", "Value"]
-        infoTable = []
-
-        # Hostname
-        hostnameTable = ["Hostname"]
-        hostnameTable.append(info["hostname"])
-        infoTable.append(hostnameTable)
-
-        # OS
-        osTable = ["OS"]
-        osTable.append(info["vps"]["os_name"])
-        infoTable.append(osTable)
-
-        # IPs
-        IPTable = ["IP Address(es)"]
-        IPTable.append(", ".join(ip for ip in info["ip"]))
-        infoTable.append(IPTable)
-
-        # Virtualization
-        virtTable = ["Virtualization"]
-        virtTable.append(info["vps"]["virt"])
-        infoTable.append(virtTable)
-
-        # RAM
-        RAMTable = ["RAM"]
-        RAMTable.append(info["vps"]["ram"])
-        infoTable.append(RAMTable)
-
-        # CPU Cores
-        coresTable = ["CPU Cores"]
-        coresTable.append(info["vps"]["cores"])
-        infoTable.append(coresTable)
-
-        print(tabulate(infoTable, headers=tableHeaders, tablefmt="grid"))
+        getVMInfo(api, args.id)

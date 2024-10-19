@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="VirtuCLI",
-    version="0.1",
+    version="0.2",
     author="manoedinata",
     author_email="manoedinata@gmail.com",
     description="Basic management of Virtualizor VMs from CLI.",
