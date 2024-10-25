@@ -41,8 +41,7 @@ def init_args():
     vdfAdd.add_argument("--dest-port", help="Destination port", required=True)
 
     ## Domain Forwarding: Setup 20 ports
-    natPorts = subparsers.add_parser("natports", help="[NAT] Setup 20 port forwardings for basic use, automatically")
-    natPorts.add_argument("-i", "--id", help="VM UID", required=True)
+    natPorts = vdfSubparser.add_parser("natports", help="[NAT] Setup 20 port forwardings for basic use, automatically")
     natPorts.add_argument("-p", "--ports", help="Base ports to be used. For example, if 27000 is specified, then the added ports will be 27000, 27001, 27002, until 27020. Random ports will be used if not specified.", type=int, required=False)
     natPorts.add_argument("--ssh", help="Use the first port for SSH port.", action="store_true", required=False)
 
@@ -86,22 +85,22 @@ def main():
             else:
                 print("Success!")
 
-    elif args.command == "natports":
-        ports = args.ports
-        if not ports: ports = random.randint(25001, 64000)
-        lengthOfPorts = 20
+        elif args.vdf_command == "natports":
+            ports = args.ports
+            if not ports: ports = random.randint(25001, 64000)
+            lengthOfPorts = 20
 
-        # Determine which IP to be used (random, shall we?)
-        vdfInfo = api.getVDFInfo(args.id)
-        src_ips = random.choice(vdfInfo["src_ips"])
-        dest_ips = random.choice(vdfInfo["dest_ips"])
+            # Determine which IP to be used (random, shall we?)
+            vdfInfo = api.getVDFInfo(args.id)
+            src_ips = random.choice(vdfInfo["src_ips"])
+            dest_ips = random.choice(vdfInfo["dest_ips"])
 
-        # SSH
-        if args.ssh:
-            api.addVDF(args.id, "TCP", port, src_ips, dest_ips, 22)
-            ports += 1
-            lengthOfPorts -= 1
+            # SSH
+            if args.ssh:
+                api.addVDF(args.id, "TCP", port, src_ips, dest_ips, 22)
+                ports += 1
+                lengthOfPorts -= 1
 
-        # Add ports
-        for port in range(ports, ports + lengthOfPorts):
-            api.addVDF(args.id, "TCP", port, src_ips, dest_ips, port)
+            # Add ports
+            for port in range(ports, ports + lengthOfPorts):
+                api.addVDF(args.id, "TCP", port, src_ips, dest_ips, port)
