@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from appdirs import user_config_dir
+import os
+import sys
 
 import random
 from virtualizorapi import Api
@@ -52,11 +54,14 @@ def init_args():
 def main():
     args = init_args()
 
+    # Pre-check: Abort if config file not found
+    config_path = args.config if args.config else default_config_path() + "/config.ini"
+    if not os.path.isfile(config_path):
+        print(f"Error: Configuration file not found at '{config_path}'. Please provide a valid config file.")
+        sys.exit(1)
+
     config = ConfigParser()
-    if args.config:
-        config.read(args.config)
-    else:
-        config.read(default_config_path())
+    config.read(config_path)
 
     # Setup API class
     serverURL = config["Server"]["SERVER_URL"]
