@@ -77,7 +77,7 @@ def main():
 
     elif args.command == "vdf":
         if args.vdf_command == "add":
-            req = api.addVDF(
+            api.addVDF(
                 args.id,
                 args.proto,
                 args.src_port,
@@ -85,8 +85,8 @@ def main():
                 args.dest,
                 args.dest_port
             )
-            if "error" in req.keys():
-                print(f"Error: {req['error']}")
+            if api.error:
+                print(f"Error: {api.error_message} ({api.error_code})")
             else:
                 print("Success!")
 
