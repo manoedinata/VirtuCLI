@@ -14,7 +14,7 @@ def default_config_path():
     return path
 
 def init_args():
-    parser = ArgumentParser(description="Basic management of Virtualizor VMs from CLI.")
+    parser = ArgumentParser(prog="virtucli", description="Basic management of Virtualizor VMs from CLI.")
     parser.add_argument("-c", "--config", help="Custom configuration file", required=False)
 
     # Subcommand
