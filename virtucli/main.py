@@ -27,6 +27,19 @@ def init_args():
     VMInfo = subparsers.add_parser("vminfo", help="Get specific VM info")
     VMInfo.add_argument("-i", "--id", help="VM UID", required=True)
 
+    ## Domain Forwarding
+    vdf = subparsers.add_parser("vdf", help="Domain Forwarding management")
+    vdf.add_argument("-i", "--id", help="VM UID. Will use IP", required=True)
+    vdfSubparser = vdf.add_subparsers(dest="vdf_command", required=True)
+
+    ### Domain Forwarding: Add
+    vdfAdd = vdfSubparser.add_parser("add", help="Add a new VDF entry")
+    vdfAdd.add_argument("--proto", help="Protocol to be used", required=True)
+    vdfAdd.add_argument("--src", help="Source IP/domain", required=True)
+    vdfAdd.add_argument("--src-port", help="Source port", required=True)
+    vdfAdd.add_argument("--dest", help="Destination IP", required=True)
+    vdfAdd.add_argument("--dest-port", help="Destination port", required=True)
+
     ## Domain Forwarding: Setup 20 ports
     natPorts = subparsers.add_parser("natports", help="[NAT] Setup 20 port forwardings for basic use, automatically")
     natPorts.add_argument("-i", "--id", help="VM UID", required=True)
@@ -57,6 +70,21 @@ def main():
 
     elif args.command == "vminfo":
         getVMInfo(api, args.id)
+
+    elif args.command == "vdf":
+        if args.vdf_command == "add":
+            req = api.addVDF(
+                args.id,
+                args.proto,
+                args.src_port,
+                args.src,
+                args.dest,
+                args.dest_port
+            )
+            if "error" in req.keys():
+                print(f"Error: {req['error']}")
+            else:
+                print("Success!")
 
     elif args.command == "natports":
         ports = args.ports
