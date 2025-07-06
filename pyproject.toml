@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "virtucli"
-version = "0.6"
+version = "0.7"
 description = "Basic management of Virtualizor VMs from CLI."
 authors = ["Hendra Manudinata <manoedinata@gmail.com>"]
 readme = "README.md"
