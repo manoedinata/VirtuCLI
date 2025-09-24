@@ -5,7 +5,7 @@ import os
 import sys
 
 import random
-from virtualizorenduser import Api
+from .api import Api
 
 from .utils import listVM
 from .utils import getVMInfo
