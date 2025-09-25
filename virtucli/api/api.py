@@ -172,3 +172,45 @@ class Api(object):
                 "error_message": error_message,
             }
         return req
+
+    def delete_vdf(self, vps_id: int, vdf_id: int) -> dict:
+        """
+        Delete a VDF entry for a specific VM.
+        :param vps_id: VPS ID number
+        :param vdf_id: VDF ID number
+        """
+        return self.__request(
+            "POST",
+            params_dict={"act": "managevdf"},
+            data_dict={
+                "svs": int(vps_id),
+                "vdf_action": "delvdf",
+                "vdfid": int(vdf_id)
+            },
+        )
+
+    def edit_vdf(self, vps_id: int, vdf_id: int, protocol: str, src_port: int, src_hostname: str, dest_ip: str, dest_port: int) -> dict:
+        """
+        Edit a VDF for a specific VM.
+        :param vps_id: VPS ID number
+        :param vdf_id: VDF ID number
+        :param protocol: Domain Forwarding protocol
+        :param src_port: Source port (if using HTTP/HTTPS protocol, use 80/443)
+        :param src_hostname: Source domain, if using HTTP/HTTPS protocol
+        :param dest_ip: Destination IP
+        :param dest_port: Destination port (if using HTTP/HTTPS protocol, use 80/443)
+        """
+        return self.__request(
+            "POST",
+            params_dict={"act": "managevdf"},
+            data_dict={
+                "svs": int(vps_id),
+                "vdf_action": "editvdf",
+                "vdfid": int(vdf_id),
+                "protocol": protocol,
+                "src_port": src_port,
+                "src_hostname": src_hostname,
+                "dest_ip": dest_ip,
+                "dest_port": dest_port,
+            },
+        )

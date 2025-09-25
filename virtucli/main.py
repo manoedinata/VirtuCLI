@@ -49,6 +49,19 @@ def init_args() -> object:
     vdfAdd.add_argument("--dest", help="Destination IP", required=True)
     vdfAdd.add_argument("--dest-port", help="Destination port", required=True)
 
+    ### Domain Forwarding: Edit
+    vdfEdit = vdfSubparser.add_parser("edit", help="Edit an existing VDF entry")
+    vdfEdit.add_argument("--vdf-id", help="VDF ID to be edited", required=True)
+    vdfEdit.add_argument("--proto", help="Protocol to be used", required=True)
+    vdfEdit.add_argument("--src", help="Source IP/domain", required=True)
+    vdfEdit.add_argument("--src-port", help="Source port", required=True)
+    vdfEdit.add_argument("--dest", help="Destination IP", required=True)
+    vdfEdit.add_argument("--dest-port", help="Destination port", required=True)
+
+    ### Domain Forwarding: Delete
+    vdfList = vdfSubparser.add_parser("delete", help="Delete a VDF entry")
+    vdfList.add_argument("--vdf-id", help="VDF ID to be deleted", required=True)
+
     ## Domain Forwarding: Setup 20 ports
     # natPorts = vdfSubparser.add_parser("natports", help="[NAT] Setup 20 port forwardings for basic use, automatically")
     # natPorts.add_argument("-p", "--ports", help="Base ports to be used. For example, if 27000 is specified, then the added ports will be 27000, 27001, 27002, until 27020. Random ports will be used if not specified.", type=int, required=False)
@@ -95,6 +108,13 @@ def main() -> None:
             functions.vdf.add_vdf(api, args.src, args.src_port, args.dest, args.dest_port)
         elif args.vdf_command == "list":
             functions.vdf.list_vdf(api, int(args.id), args.filter if args.filter else None)
+        elif args.vdf_command == "edit":
+            functions.vdf.edit_vdf(
+                api, int(args.id), int(args.vdf_id),
+                args.src, int(args.src_port), args.dest, int(args.dest_port), args.proto
+            )
+        elif args.vdf_command == "delete":
+            functions.vdf.delete_vdf(api, int(args.id), int(args.vdf_id))
 
         # elif args.vdf_command == "natports":
         #     ports = args.ports
