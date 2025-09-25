@@ -2,12 +2,12 @@
 
 Basic management of Virtualizor VMs from CLI.
 
+> [!WARNING]
+> This library is still in development, and prone for extreme changes. You have been warned.
+
 # Installation
 
 ```bash
-# Install VirtualizorEnduser-Python first
-pip3 install git+https://github.com/manoedinata/VirtualizorEnduser-Python
-
 # Install VirtuCLI
 pip3 install git+https://github.com/manoedinata/VirtuCLI
 ```

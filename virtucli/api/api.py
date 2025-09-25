@@ -2,6 +2,8 @@ from requests import Session
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
+import logging
+
 class Api(object):
     def __init__(self, server_url: str, api_key: str, api_password: str) -> None:
         # Base URL
@@ -11,164 +13,136 @@ class Api(object):
         self.session = Session()
         self.session.verify = False
         disable_warnings(InsecureRequestWarning)
+        self.session.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+        }
 
         # Base params
         # API & authentication params preparation
-        self.baseParams = {
+        self.base_params = {
             "api": "json",
             "apikey": api_key,
             "apipass": api_password,
             "do": 1
         }
 
-        # Request status
-        self.error = False
-        self.error_code = ""
-        self.error_message = ""
 
-
-    def __request(self, method: str, paramsDict: dict, dataDict: dict = {}) -> dict:
+    def __request(self, method: str, params_dict: dict, data_dict: dict = None) -> dict:
         """
-        Make a request to API
-        Specifically for automatic parameters handle.
-
+        Make a request to API with automatic parameter handling.
+        Handles network and HTTP errors gracefully.
         :param method: Request method
-        :param paramsDict: Required parameters, in dictionary
+        :param params_dict: Required parameters, in dictionary
+        :param data_dict: Data dictionary for POST requests
         """
-        params = self.baseParams
-        params.update(paramsDict)
-
-        req = self.session.request(method=method, url=self.BASE_URL, params=params, data=dataDict)
-        return req.json()
-
+        params = self.base_params.copy()
+        params.update(params_dict)
+        if data_dict is None:
+            data_dict = {}
+        try:
+            resp = self.session.request(method=method, url=self.BASE_URL, params=params, data=data_dict, timeout=10)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            logging.error(f" API request failed: {e}")
+            return {"error": str(e)}
 
     # Functions: List VM
-    def listVM(self):
+    def list_vm(self) -> list:
         """
         List VMs in an account.
         """
-        req = self.__request("GET", {
-            "act": "listvs"
-        })
-
-        return req["vs"]
+        return self.__request("GET", {"act": "listvs"})
 
     # Functions: VM info
-    def VMInfo(self, vps_id):
+    def vm_info(self, vps_id: int) -> dict:
         """
         Get specific VM information.
-
         :param vps_id: VPS ID number
         """
-        req = self.__request("GET", {
-            "act": "vpsmanage",
-            "svs": int(vps_id)
-        })
-        
-        return req["info"]
+        return self.__request("GET", {"act": "vpsmanage", "svs": int(vps_id)})
 
     # Functions: Start VM
-    def StartVM(self, vps_id):
+    def start_vm(self, vps_id: int) -> dict:
         """
         Start a specific VM.
-
         :param vps_id: VPS ID number
         """
-        req = self.__request("GET", {
-            "act": "start",
-            "svs": int(vps_id),
-        })
-        
-        return req
+        return self.__request("GET", {"act": "start", "svs": int(vps_id)})
 
     # Functions: Stop VM
-    def stopVM(self, vps_id):
+    def stop_vm(self, vps_id: int) -> dict:
         """
         Stop a specific VM.
-
         :param vps_id: VPS ID number
         """
-        req = self.__request("GET", {
-            "act": "stop",
-            "svs": int(vps_id),
-        })
-        
-        return req
+        return self.__request("GET", {"act": "stop", "svs": int(vps_id)})
 
     # Functions: List OS
-    def listOS(self, vps_id):
+    def list_os(self, vps_id: int) -> list:
         """
         List available OSes for a specific VM.
-
         :param vps_id: VPS ID number
         """
-        req = self.__request("GET", {
-            "act": "ostemplate",
-            "svs": int(vps_id),
-        })
-
-        return req["oslist"]["vzo"]
+        req = self.__request("GET", {"act": "ostemplate", "svs": int(vps_id)})
+        return req.get("oslist", {}).get("vzo", [])
 
     # Functions: Restart VM
-    def restartVM(self, vps_id):
+    def restart_vm(self, vps_id: int) -> dict:
         """
         Restart a specific VM.
-
         :param vps_id: VPS ID number
         """
-        req = self.__request("GET", {
-            "act": "restart",
-            "svs": int(vps_id),
-        })
-        
-        return req
+        return self.__request("GET", {"act": "restart", "svs": int(vps_id)})
 
 
     # Private functions: Request List VDF
-    def __reqListVDF(self, vps_id):
+    def __req_list_vdf(self, vps_id: int) -> dict:
         """
         HTTP Request of List VDFs for a specific VM.
-
         :param vps_id: VPS ID number
         """
-        req = self.__request("GET", {
-            "act": "managevdf",
-            "svs": int(vps_id),
-        })
-        
-        return req
+        return self.__request("GET", {"act": "managevdf", "svs": int(vps_id)})
 
     # Functions: List VDF
-    def listVDF(self, vps_id):
+    def list_vdf(self, vps_id: int) -> list:
         """
         List VDFs for a specific VM.
-
         :param vps_id: VPS ID number
         """
-        req = self.__reqListVDF(vps_id)
-
-        return req["haproxydata"]
+        req = self.__req_list_vdf(vps_id)
+        return req.get("haproxydata", [])
 
     # Functions: Get VDF additional info
-    def getVDFInfo(self, vps_id):
+    def get_vdf_info(self, vps_id: int) -> dict:
         """
         Get VDF additional info.
-
         :param vps_id: VPS ID number
         """
-        req = self.__reqListVDF(vps_id)
-
+        req = self.__req_list_vdf(vps_id)
+        vpses = req.get("vpses", {})
+        dest_ips = []
+        if vpses:
+            first_vps = next(iter(vpses.values()), {})
+            dest_ips = list(first_vps.get("ips", {}).keys())
         return {
-            "supported_protocols": req["supported_protocols"],
-            "src_ips": req["arr_haproxy_src_ips"],
-            "dest_ips": list(req["vpses"][list(req["vpses"].keys())[0]]["ips"].keys())
+            "supported_protocols": req.get("supported_protocols", []),
+            "src_ips": req.get("arr_haproxy_src_ips", []),
+            "dest_ips": dest_ips
         }
 
     # Functions: Add VDF
-    def addVDF(self, vps_id, protocol, src_port, src_hostname, dest_ip, dest_port):
+    def add_vdf(
+        self,
+        vps_id: int,
+        protocol: str,
+        src_port: int,
+        src_hostname: str,
+        dest_ip: str,
+        dest_port: int
+    ) -> dict:
         """
         Add a VDF for a specific VM.
-
         :param vps_id: VPS ID number
         :param protocol: Domain Forwarding protocol
         :param src_port: Source port (if using HTTP/HTTPS protocol, use 80/443)
@@ -176,27 +150,25 @@ class Api(object):
         :param dest_ip: Destination IP
         :param dest_port: Destination port (if using HTTP/HTTPS protocol, use 80/443)
         """
-        req = self.__request("POST", paramsDict={
-            "act": "managevdf",
-        }, dataDict={
-            "svs": int(vps_id),
-            "vdf_action": "addvdf",
-            "protocol": protocol,
-            "src_port": src_port,
-            "src_hostname": src_hostname,
-            "dest_ip": dest_ip,
-            "dest_port": dest_port,
-        })
-
-        if "error" in req.keys():
-            self.error = True
-            self.error_code = list(req["error"].keys())[0]
-            self.error_message = list(req["error"].values())[0]
-
+        req = self.__request(
+            "POST",
+            params_dict={"act": "managevdf"},
+            data_dict={
+                "svs": int(vps_id),
+                "vdf_action": "addvdf",
+                "protocol": protocol,
+                "src_port": src_port,
+                "src_hostname": src_hostname,
+                "dest_ip": dest_ip,
+                "dest_port": dest_port,
+            },
+        )
+        if "error" in req:
+            error_code = list(req["error"].keys())[0] if req["error"] else ""
+            error_message = list(req["error"].values())[0] if req["error"] else ""
             return {
                 "error": req["error"],
-                "error_code": self.error_code,
-                "error_message": self.error_message
+                "error_code": error_code,
+                "error_message": error_message,
             }
-        else:
-            return req
+        return req
