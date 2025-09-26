@@ -82,10 +82,10 @@ def main() -> None:
     config_path = args.config if args.config else default_config_path() + "/config.ini"
     if not os.path.isfile(config_path):
         print(
-            f"Error: Configuration file not found at '{config_path + "/config.ini"}'. " \
+            f"Error: Configuration file not found at '{config_path}'. " \
             "Please provide a valid config file or specify with '-c/--config'."
         )
-        print(f"Or, place the config file at the default location: {config_path + '/config.ini'}")
+        print(f"Or, place the config file at the default location: '{config_path}'")
         sys.exit(1)
 
     config = ConfigParser()
