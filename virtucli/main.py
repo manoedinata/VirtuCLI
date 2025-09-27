@@ -105,7 +105,7 @@ def main() -> None:
 
     elif args.command == "vdf":
         if args.vdf_command == "add":
-            functions.vdf.add_vdf(api, args.src, args.src_port, args.dest, args.dest_port)
+            functions.vdf.add_vdf(api, args.src, args.src_port, args.dest, args.dest_port, args.proto, int(args.id))
         elif args.vdf_command == "list":
             functions.vdf.list_vdf(api, int(args.id), args.filter if args.filter else None)
         elif args.vdf_command == "edit":

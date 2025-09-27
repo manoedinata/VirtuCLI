@@ -30,13 +30,13 @@ def list_vdf(api: Api, vps_id: int, filter_output: str = None) -> None:
     print(f"Total entries: {len(vdf_table)}")
     print(tabulate(vdf_table, headers=table_headers, tablefmt="grid"))
 
-def add_vdf(api: Api, src_ip: str, src_port: int, dest_ip: str, dest_port: int, proto: str):
+def add_vdf(api: Api, src_ip: str, src_port: int, dest_ip: str, dest_port: int, proto: str, vps_id: int) -> None:
     src_port = int(src_port)
     dest_port = int(dest_port)
 
     result = api.add_vdf(
-        int(id),
-        proto,
+        int(vps_id),
+        proto.upper(),
         src_port,
         src_ip,
         dest_ip,
